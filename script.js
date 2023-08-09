@@ -106,3 +106,26 @@ document.addEventListener("keydown", event => {
         clear();
     }
 });
+
+function Calculator() {
+
+    const OPERATIONS = {
+        '+' : add,
+        '-' : subtract,
+        '*' : multiply,
+        '/' : divide,
+        '%' : module,
+    }
+
+
+    const operate = ({operator, n1, n2} = {})  => OPERATIONS[operator](n1)(n2);
+    const add = (n1) => (n2) => n1 + n2;
+    const subtract = (n1) => (n2) => n1 - n2;
+    const multiply = (n1) => (n2) => n1 * n2;
+    const divide = (n1) => (n2) => n2 === 0 ?  n1 / n2 : null
+    const module = (n1) => n2 => n1 % n2;
+
+    return {operate}
+
+
+}
