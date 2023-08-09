@@ -117,30 +117,76 @@ function Calculator() {
         "/": divide,
         "%": module,
     };
-
-    const getInitialResult = (res) => ({ ...res, isError: false, ans: null });
+    const ERRORS = {
+        WRONG_INPUT: "Wrong Input",
+        DIVISION_BY_ZERO: "Division By Zero",
+    };
+    const getInitialResult = (res) => ({
+        ...res,
+        isError: false,
+        ans: null,
+        errMsg: "",
+    });
     const setResult = (res) => (result = res);
     const reset = compose(setResult, getInitialResult);
+
     const formatInput = compose(numberify, trim);
     const formatInputs = ({ n1, n2, ...rest }) => ({
         n1: formatInput(n1),
         n2: formatInput(n2),
         ...rest,
     });
-    const operate = ({ operator, n1, n2 } = {}) => OPERATIONS[operator](n1)(n2);
+
+    const isError = () => result.isError;
+    const isDivisionByZero = (n) => n === Infinity;
+    const validateInput = ({ n1, n2, ...rest } = {}) =>
+        n1 && n2
+            ? { n1, n2, ...rest }
+            : setResult({ ...result, isError: true, errMsg: ERRORS["WRONG_INPUT"] });
+    const handleOutput = (ans) =>
+        isDivisionByZero(ans)
+            ? setResult({
+                isError: true,
+                errMsg: ERRORS["DIVISION_BY_ZERO"],
+                ans: null,
+            })
+            : {
+                ...reset(),
+                ans,
+            };
+
+    const calc = ({ n1, n2, operator }) => OPERATIONS[operator](n1)(n2);
+
+    const operate = compose(
+        handleOutput,
+        unless(isError, calc),
+        tab(validateInput),
+        formatInputs,
+        tab(reset),
+    );
     const add = (n1) => (n2) => n1 + n2;
     const subtract = (n1) => (n2) => n1 - n2;
     const multiply = (n1) => (n2) => n1 * n2;
-    const divide = (n1) => (n2) => (n2 === 0 ? n1 / n2 : null);
+    const divide = (n1) => (n2) => n1 / n2;
     const module = (n1) => (n2) => n1 % n2;
 
     return { operate };
 
-    //***** helpers ******
+    //*************************helpers
     function compose(...fns) {
         return (arg) => fns.reduceRight((result, fn) => fn(result), arg);
     }
 
+    function tab(fn) {
+        return (arg) => {
+            fn();
+            return arg;
+        };
+    }
+
+    function unless(predicate) {
+        return (onFalseFn) => (arg) => (predicate(arg) ? arg : onFalseFn(arg));
+    }
     function trim(str) {
         return str.trim();
     }
