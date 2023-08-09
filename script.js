@@ -108,6 +108,7 @@ document.addEventListener("keydown", event => {
 });
 
 function Calculator() {
+    let result;
 
     const OPERATIONS = {
         '+' : add,
@@ -117,6 +118,9 @@ function Calculator() {
         '%' : module,
     }
 
+    const getInitialResult = (res) => ({...res, isError: false, ans: null});
+    const setResult = (res) => result = res;
+    const reset = compose(setResult ,getInitialResult);
 
     const operate = ({operator, n1, n2} = {})  => OPERATIONS[operator](n1)(n2);
     const add = (n1) => (n2) => n1 + n2;
@@ -127,5 +131,8 @@ function Calculator() {
 
     return {operate}
 
-
+    //***** helpers ******
+    function compose(...fns){
+        return (arg) => fns.reduceRight((result, fn) => fn(result), arg)
+    }
 }
