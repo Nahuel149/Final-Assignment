@@ -111,49 +111,20 @@ function Calculator() {
     let result;
 
     const OPERATIONS = {
-        "+": add,
-        "-": subtract,
-        "*": multiply,
-        "/": divide,
-        "%": module,
+        "+": (n1) => (n2) => n1 + n2,
+        "-": (n1) => (n2) => n1 - n2,
+        "*": (n1) => (n2) => n1 * n2,
+        "/": (n1) => (n2) => n1 / n2,
+        "%": (n1) => (n2) => n1 % n2,
     };
     const ERRORS = {
         WRONG_INPUT: "Wrong Input",
         DIVISION_BY_ZERO: "Division By Zero",
     };
-    const getInitialResult = (res) => ({
-        ...res,
-        isError: false,
-        ans: null,
-        errMsg: "",
-    });
-    const setResult = (res) => (result = res);
+
     const reset = compose(setResult, getInitialResult);
 
     const formatInput = compose(numberify, trim);
-    const formatInputs = ({ n1, n2, ...rest }) => ({
-        n1: formatInput(n1),
-        n2: formatInput(n2),
-        ...rest,
-    });
-
-    const isError = () => result.isError;
-    const isDivisionByZero = (n) => n === Infinity;
-    const validateInput = ({ n1, n2, ...rest } = {}) =>
-        n1 && n2
-            ? { n1, n2, ...rest }
-            : setResult({ ...result, isError: true, errMsg: ERRORS["WRONG_INPUT"] });
-    const handleOutput = (ans) =>
-        isDivisionByZero(ans)
-            ? setResult({
-                isError: true,
-                errMsg: ERRORS["DIVISION_BY_ZERO"],
-                ans: null,
-            })
-            : {
-                ...reset(),
-                ans,
-            };
 
     const calc = ({ n1, n2, operator }) => OPERATIONS[operator](n1)(n2);
 
@@ -164,15 +135,61 @@ function Calculator() {
         formatInputs,
         tab(reset),
     );
-    const add = (n1) => (n2) => n1 + n2;
-    const subtract = (n1) => (n2) => n1 - n2;
-    const multiply = (n1) => (n2) => n1 * n2;
-    const divide = (n1) => (n2) => n1 / n2;
-    const module = (n1) => (n2) => n1 % n2;
 
     return { operate };
 
-    //*************************helpers
+    //************************* Helpers
+
+    function getInitialResult() {
+        return {
+            isError: false,
+            ans: null,
+            errMsg: "",
+        };
+    }
+
+    function setResult(res) {
+        return (result = res);
+    }
+
+    function formatInputs({ n1, n2, ...rest }) {
+        return {
+            n1: formatInput(n1),
+            n2: formatInput(n2),
+            ...rest,
+        };
+    }
+
+    function isError() {
+        return result.isError;
+    }
+
+    function isDivisionByZero(n) {
+        return n === Infinity;
+    }
+
+    function validateInput({ n1, n2, ...rest } = {}) {
+        return n1 && n2
+            ? { n1, n2, ...rest }
+            : setResult({ ...result, isError: true, errMsg: ERRORS["WRONG_INPUT"] });
+    }
+
+    function handleOutput(ans) {
+        return setResult(
+            isDivisionByZero(ans)
+                ? {
+                    isError: true,
+                    errMsg: ERRORS["DIVISION_BY_ZERO"],
+                    ans: null,
+                }
+                : {
+                    ...reset(),
+                    ans,
+                },
+        );
+    }
+
+    //************************* utils
     function compose(...fns) {
         return (arg) => fns.reduceRight((result, fn) => fn(result), arg);
     }
@@ -194,3 +211,4 @@ function Calculator() {
         return Number(v);
     }
 }
+
