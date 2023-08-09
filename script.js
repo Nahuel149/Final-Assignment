@@ -111,28 +111,40 @@ function Calculator() {
     let result;
 
     const OPERATIONS = {
-        '+' : add,
-        '-' : subtract,
-        '*' : multiply,
-        '/' : divide,
-        '%' : module,
-    }
+        "+": add,
+        "-": subtract,
+        "*": multiply,
+        "/": divide,
+        "%": module,
+    };
 
-    const getInitialResult = (res) => ({...res, isError: false, ans: null});
-    const setResult = (res) => result = res;
-    const reset = compose(setResult ,getInitialResult);
-
-    const operate = ({operator, n1, n2} = {})  => OPERATIONS[operator](n1)(n2);
+    const getInitialResult = (res) => ({ ...res, isError: false, ans: null });
+    const setResult = (res) => (result = res);
+    const reset = compose(setResult, getInitialResult);
+    const formatInput = compose(numberify, trim);
+    const formatInputs = ({ n1, n2, ...rest }) => ({
+        n1: formatInput(n1),
+        n2: formatInput(n2),
+        ...rest,
+    });
+    const operate = ({ operator, n1, n2 } = {}) => OPERATIONS[operator](n1)(n2);
     const add = (n1) => (n2) => n1 + n2;
     const subtract = (n1) => (n2) => n1 - n2;
     const multiply = (n1) => (n2) => n1 * n2;
-    const divide = (n1) => (n2) => n2 === 0 ?  n1 / n2 : null
-    const module = (n1) => n2 => n1 % n2;
+    const divide = (n1) => (n2) => (n2 === 0 ? n1 / n2 : null);
+    const module = (n1) => (n2) => n1 % n2;
 
-    return {operate}
+    return { operate };
 
     //***** helpers ******
-    function compose(...fns){
-        return (arg) => fns.reduceRight((result, fn) => fn(result), arg)
+    function compose(...fns) {
+        return (arg) => fns.reduceRight((result, fn) => fn(result), arg);
+    }
+
+    function trim(str) {
+        return str.trim();
+    }
+    function numberify(v) {
+        return Number(v);
     }
 }
