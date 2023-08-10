@@ -200,24 +200,23 @@ function CalculatorApp() {
     display.textContent = v;
   }
 
-  let state = {
-    operator: null,
-    firstOperand: 0,
-    secondOperand: 0,
-    isError: false,
-    errMsg: "",
-    isFirstOperand: true,
-  };
+  let state = getInitialState();
+
   const ACTIONS = {
     APPEND_NUMBER: "append-number",
     HANDLE_OPERATOR: "handle-operator",
     CALCULATE: "calculate",
+    DELETE_LAST_INPUT: "delete-last-input",
   };
 
   function dispatch(v) {
     const input = v.trim();
     state =
-      input === "="
+      input === "C"
+        ? getInitialState()
+        : input === "←"
+        ? _dispatch(state, { action: ACTIONS.DELETE_LAST_INPUT })
+        : input === "="
         ? _dispatch(
             { ...state, operator: null },
             {
@@ -248,10 +247,10 @@ function CalculatorApp() {
 
   function _dispatch(state, { action, input }) {
     const { firstOperand, secondOperand, operator, isFirstOperand } = state;
+    const currentOperand = isFirstOperand ? firstOperand : secondOperand;
+
     switch (action) {
       case ACTIONS.APPEND_NUMBER:
-        const currentOperand = isFirstOperand ? firstOperand : secondOperand;
-
         return input === "." && hasDot(currentOperand)
           ? state
           : {
@@ -290,10 +289,37 @@ function CalculatorApp() {
           errMsg,
           isError,
         };
+
+      case ACTIONS.DELETE_LAST_INPUT:
+        console.log(deleteLastInput(input));
+        return {
+          ...state,
+          [isFirstOperand ? "firstOperand" : "secondOperand"]: compose(
+            deleteLastInput,
+            getCurrentOperand,
+          )(state),
+        };
     }
   }
   function hasDot(v) {
     return v?.toString().includes(".");
+  }
+  function getInitialState() {
+    return {
+      operator: null,
+      firstOperand: 0,
+      secondOperand: 0,
+      isError: false,
+      errMsg: "",
+      isFirstOperand: true,
+    };
+  }
+  function deleteLastInput(v) {
+    return v?.toString().slice(0, -1);
+  }
+  function getCurrentOperand(state) {
+    const { isFirstOperand, firstOperand, secondOperand } = state;
+    return isFirstOperand ? firstOperand : secondOperand;
   }
 }
 
