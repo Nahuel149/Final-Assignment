@@ -132,7 +132,6 @@ function Calculator() {
   const calc = ({ n1, n2, operator }) => OPERATIONS[operator](n1)(n2);
 
   const operate = compose(
-    //tab((args) => console.log(args)),
     handleOutput,
     unless(isError)(calc),
     tap(validateInput),
@@ -204,11 +203,12 @@ function CalculatorApp() {
   let state = {
     currentInput: "",
     operator: null,
-    firstOperand: "",
-    secondOperand: "",
+    firstOperand: 0,
+    secondOperand: 0,
     isDot: false,
     isError: false,
     errMsg: "",
+    isFirstOperand: true,
   };
   const ACTIONS = {
     APPEND_NUMBER: "append-number",
@@ -219,24 +219,31 @@ function CalculatorApp() {
   function dispatch(v) {
     const input = v.trim();
     state =
-      v === "="
-        ? _dispatch(state, {
-            action: ACTIONS.CALCULATE,
-            input: {
-              n1: state.firstOperand,
-              n2: state.secondOperand,
-              operator: state.operator,
+      input === "="
+        ? _dispatch(
+            { ...state, operator: null },
+            {
+              action: ACTIONS.CALCULATE,
+              input: {
+                n1: state.firstOperand,
+                n2: state.secondOperand,
+                operator: state.operator,
+              },
             },
-          })
+          )
         : ["+", "-", "*", "/", "%"].includes(input)
         ? _dispatch(state, { action: ACTIONS.HANDLE_OPERATOR, input })
         : state.isDot
         ? state
         : _dispatch(state, { action: ACTIONS.APPEND_NUMBER, input });
 
-    // state = _dispatch({ action: ACTIONS.HANDLE_INPUT, data: args });
-    console.log(state);
-    updateDisplay(state.isError ? state.errMsg : state.firstOperand);
+    updateDisplay(
+      state.isError
+        ? state.errMsg
+        : state.isFirstOperand || !+state.secondOperand
+        ? state.firstOperand
+        : state.secondOperand,
+    );
   }
 
   return { dispatch };
@@ -244,15 +251,20 @@ function CalculatorApp() {
   /////***********************************
 
   function _dispatch(state, { action, input }) {
-    const { firstOperand, secondOperand, operator, isDot } = state;
+    const { firstOperand, secondOperand, operator, isDot, isFirstOperand } =
+      state;
     switch (action) {
       case ACTIONS.APPEND_NUMBER:
-        const updatedNumber = `${
-          operator ? secondOperand.toString() : firstOperand.toString()
-        }${input}`;
+        const currentOperand = isFirstOperand ? firstOperand : secondOperand;
+
         return {
           ...state,
-          [operator ? "secondOperand" : "firstOperand"]: updatedNumber,
+          [operator ? "secondOperand" : "firstOperand"]: `${
+            state.isError || currentOperand.toString() === "0"
+              ? ""
+              : currentOperand
+          }${input}`,
+          isError: false,
         };
 
       case ACTIONS.HANDLE_OPERATOR:
@@ -265,15 +277,18 @@ function CalculatorApp() {
                   input: { n1: firstOperand, n2: secondOperand, operator },
                 },
               )
-            : { ...state, operator: input }
+            : { ...state, operator: input, isFirstOperand: false }
           : state; //ignore
 
       case ACTIONS.CALCULATE:
         const { n1, n2, operater } = input;
         const { isError, errMsg, ans } = operate(input);
+
         return {
           ...state,
           firstOperand: isError ? null : ans.toString(),
+          operator: isError ? null : operator,
+          isFirstOperand: isError,
           secondOperand: "",
           errMsg,
           isError,
