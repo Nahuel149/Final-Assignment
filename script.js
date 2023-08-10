@@ -129,8 +129,9 @@ function Calculator() {
   const calc = ({ n1, n2, operator }) => OPERATIONS[operator](n1)(n2);
 
   const operate = compose(
+    //tab((args) => console.log(args)),
     handleOutput,
-    unless(isError, calc),
+    unless(isError)(calc),
     tab(validateInput),
     formatInputs,
     tab(reset),
@@ -169,9 +170,9 @@ function Calculator() {
   }
 
   function validateInput({ n1, n2, ...rest } = {}) {
-    return n1 && n2
-      ? { n1, n2, ...rest }
-      : setResult({ ...result, isError: true, errMsg: ERRORS["WRONG_INPUT"] });
+    return [n1, n2].some(isNaN)
+      ? setResult({ ...result, isError: true, errMsg: ERRORS["WRONG_INPUT"] })
+      : { n1, n2, ...rest };
   }
 
   function handleOutput(ans) {
@@ -196,7 +197,7 @@ function Calculator() {
 
   function tab(fn) {
     return (arg) => {
-      fn();
+      fn(arg);
       return arg;
     };
   }
@@ -204,6 +205,7 @@ function Calculator() {
   function unless(predicate) {
     return (onFalseFn) => (arg) => (predicate(arg) ? arg : onFalseFn(arg));
   }
+
   function trim(str) {
     return str.trim();
   }
