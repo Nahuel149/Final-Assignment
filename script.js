@@ -110,7 +110,6 @@ document.addEventListener("keydown", (event) => {
     clear();
   }
 });
-
 function Calculator() {
   let result;
 
@@ -198,6 +197,10 @@ function Calculator() {
 function CalculatorApp() {
   const { operate } = Calculator();
   const display = document.getElementById("display");
+  function updateDisplay() {
+    display.textContent = currentInput;
+  }
+
   let state = {
     currentInput: "",
     operator: null,
@@ -206,59 +209,56 @@ function CalculatorApp() {
     isDot: false,
   };
   const ACTIONS = {
-    UPDATE_DISPLAY: "update-display",
     APPEND_NUMBER: "append-number",
     HANDLE_INPUT: "handle-input",
+    HANDLE_OPERATOR: "handle-operator",
   };
 
   const getS = () => console.log(state);
-  function dispatch(args) {
-    state = _dispatch({ action: ACTIONS.HANDLE_INPUT, data: args });
+  function dispatch(v) {
+    const input = v.trim();
+    state = ["+", "-", "*", "/", "%"].includes(input)
+      ? _dispatch(state, { action: ACTIONS.HANDLE_OPERATOR, input })
+      : state.isDot
+      ? state
+      : _dispatch(state, { action: ACTIONS.APPEND_NUMBER, input });
+
+    // state = _dispatch({ action: ACTIONS.HANDLE_INPUT, data: args });
+    console.log(state);
   }
 
   return { dispatch, getS };
 
   /////***********************************
 
-  // function updateDisplay() {
-  //     display.textContent = currentInput;
-  // }
-  function _dispatch({ action, data }) {
+  function _dispatch(state, { action, input }) {
     const { firstOperand, secondOperand, operator, currentInput, isDot } =
       state;
     switch (action) {
-      case ACTIONS.HANDLE_INPUT:
-        const input = data.trim();
-        return ["+", "-", "*", "/", "%"].includes(input)
-          ? firstOperand
-            ? secondOperand
-              ? {
-                  ...state,
-                  operator: input,
-                  secondOperand: "",
-                  firstOperand: operate({
-                    n1: firstOperand,
-                    n2: secondOperand,
-                    operator,
-                  }).ans.toString(),
-                }
-              : { ...state, operator: input }
-            : state //ignore
-          : isDot
-          ? state
-          : _dispatch({ action: ACTIONS.APPEND_NUMBER, data: input });
-
-      case ACTIONS.UPDATE_DISPLAY:
-        display.textContent = currentInput;
-        return { ...state };
       case ACTIONS.APPEND_NUMBER:
         const updatedNumber = `${
           operator ? secondOperand.toString() : firstOperand.toString()
-        }${data}`;
+        }${input}`;
         return {
           ...state,
           [operator ? "secondOperand" : "firstOperand"]: updatedNumber,
         };
+
+      case ACTIONS.HANDLE_OPERATOR:
+        return firstOperand
+          ? secondOperand
+            ? {
+                ...state,
+                operator: input,
+                secondOperand: "",
+                firstOperand: operate({
+                  n1: firstOperand,
+                  n2: secondOperand,
+                  operator,
+                }).ans.toString(),
+              }
+            : { ...state, operator: input }
+          : state; //ignore
     }
   }
 }
