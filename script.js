@@ -197,8 +197,8 @@ function Calculator() {
 function CalculatorApp() {
   const { operate } = Calculator();
   const display = document.getElementById("display");
-  function updateDisplay() {
-    display.textContent = currentInput;
+  function updateDisplay(v) {
+    display.textContent = v;
   }
 
   let state = {
@@ -207,33 +207,44 @@ function CalculatorApp() {
     firstOperand: "",
     secondOperand: "",
     isDot: false,
+    isError: false,
+    errMsg: "",
   };
   const ACTIONS = {
     APPEND_NUMBER: "append-number",
-    HANDLE_INPUT: "handle-input",
     HANDLE_OPERATOR: "handle-operator",
+    CALCULATE: "calculate",
   };
 
-  const getS = () => console.log(state);
   function dispatch(v) {
     const input = v.trim();
-    state = ["+", "-", "*", "/", "%"].includes(input)
-      ? _dispatch(state, { action: ACTIONS.HANDLE_OPERATOR, input })
-      : state.isDot
-      ? state
-      : _dispatch(state, { action: ACTIONS.APPEND_NUMBER, input });
+    state =
+      v === "="
+        ? _dispatch(state, {
+            action: ACTIONS.CALCULATE,
+            input: {
+              n1: state.firstOperand,
+              n2: state.secondOperand,
+              operator: state.operator,
+            },
+          })
+        : ["+", "-", "*", "/", "%"].includes(input)
+        ? _dispatch(state, { action: ACTIONS.HANDLE_OPERATOR, input })
+        : state.isDot
+        ? state
+        : _dispatch(state, { action: ACTIONS.APPEND_NUMBER, input });
 
     // state = _dispatch({ action: ACTIONS.HANDLE_INPUT, data: args });
     console.log(state);
+    updateDisplay(state.isError ? state.errMsg : state.firstOperand);
   }
 
-  return { dispatch, getS };
+  return { dispatch };
 
   /////***********************************
 
   function _dispatch(state, { action, input }) {
-    const { firstOperand, secondOperand, operator, currentInput, isDot } =
-      state;
+    const { firstOperand, secondOperand, operator, isDot } = state;
     switch (action) {
       case ACTIONS.APPEND_NUMBER:
         const updatedNumber = `${
@@ -247,18 +258,26 @@ function CalculatorApp() {
       case ACTIONS.HANDLE_OPERATOR:
         return firstOperand
           ? secondOperand
-            ? {
-                ...state,
-                operator: input,
-                secondOperand: "",
-                firstOperand: operate({
-                  n1: firstOperand,
-                  n2: secondOperand,
-                  operator,
-                }).ans.toString(),
-              }
+            ? _dispatch(
+                { ...state, operator: input },
+                {
+                  action: ACTIONS.CALCULATE,
+                  input: { n1: firstOperand, n2: secondOperand, operator },
+                },
+              )
             : { ...state, operator: input }
           : state; //ignore
+
+      case ACTIONS.CALCULATE:
+        const { n1, n2, operater } = input;
+        const { isError, errMsg, ans } = operate(input);
+        return {
+          ...state,
+          firstOperand: isError ? null : ans.toString(),
+          secondOperand: "",
+          errMsg,
+          isError,
+        };
     }
   }
 }
