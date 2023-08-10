@@ -1,4 +1,8 @@
+const app = CalculatorApp();
+const { compose, unless, tap, numberify, trim } = Utils();
+
 const display = document.getElementById("display");
+
 let currentInput = "";
 let currentOperator = "";
 let firstNumber = null;
@@ -132,9 +136,9 @@ function Calculator() {
     //tab((args) => console.log(args)),
     handleOutput,
     unless(isError)(calc),
-    tab(validateInput),
+    tap(validateInput),
     formatInputs,
-    tab(reset),
+    tap(reset),
   );
 
   return { operate };
@@ -188,29 +192,6 @@ function Calculator() {
             ans,
           },
     );
-  }
-
-  //************************* utils
-  function compose(...fns) {
-    return (arg) => fns.reduceRight((result, fn) => fn(result), arg);
-  }
-
-  function tab(fn) {
-    return (arg) => {
-      fn(arg);
-      return arg;
-    };
-  }
-
-  function unless(predicate) {
-    return (onFalseFn) => (arg) => (predicate(arg) ? arg : onFalseFn(arg));
-  }
-
-  function trim(str) {
-    return str.trim();
-  }
-  function numberify(v) {
-    return Number(v);
   }
 }
 
@@ -279,5 +260,30 @@ function CalculatorApp() {
           [operator ? "secondOperand" : "firstOperand"]: updatedNumber,
         };
     }
+  }
+}
+
+function Utils() {
+  return { compose, tap, unless, trim, numberify };
+  function compose(...fns) {
+    return (arg) => fns.reduceRight((result, fn) => fn(result), arg);
+  }
+
+  function tap(fn) {
+    return (arg) => {
+      fn(arg);
+      return arg;
+    };
+  }
+
+  function unless(predicate) {
+    return (onFalseFn) => (arg) => (predicate(arg) ? arg : onFalseFn(arg));
+  }
+
+  function trim(str) {
+    return str.trim();
+  }
+  function numberify(v) {
+    return Number(v);
   }
 }
