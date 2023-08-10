@@ -201,11 +201,9 @@ function CalculatorApp() {
   }
 
   let state = {
-    currentInput: "",
     operator: null,
     firstOperand: 0,
     secondOperand: 0,
-    isDot: false,
     isError: false,
     errMsg: "",
     isFirstOperand: true,
@@ -233,8 +231,6 @@ function CalculatorApp() {
           )
         : ["+", "-", "*", "/", "%"].includes(input)
         ? _dispatch(state, { action: ACTIONS.HANDLE_OPERATOR, input })
-        : state.isDot
-        ? state
         : _dispatch(state, { action: ACTIONS.APPEND_NUMBER, input });
 
     updateDisplay(
@@ -251,21 +247,22 @@ function CalculatorApp() {
   /////***********************************
 
   function _dispatch(state, { action, input }) {
-    const { firstOperand, secondOperand, operator, isDot, isFirstOperand } =
-      state;
+    const { firstOperand, secondOperand, operator, isFirstOperand } = state;
     switch (action) {
       case ACTIONS.APPEND_NUMBER:
         const currentOperand = isFirstOperand ? firstOperand : secondOperand;
 
-        return {
-          ...state,
-          [operator ? "secondOperand" : "firstOperand"]: `${
-            state.isError || currentOperand.toString() === "0"
-              ? ""
-              : currentOperand
-          }${input}`,
-          isError: false,
-        };
+        return input === "." && hasDot(currentOperand)
+          ? state
+          : {
+              ...state,
+              [operator ? "secondOperand" : "firstOperand"]: `${
+                state.isError || currentOperand.toString() === "0"
+                  ? ""
+                  : currentOperand
+              }${input}`,
+              isError: false,
+            };
 
       case ACTIONS.HANDLE_OPERATOR:
         return firstOperand
@@ -294,6 +291,9 @@ function CalculatorApp() {
           isError,
         };
     }
+  }
+  function hasDot(v) {
+    return v?.toString().includes(".");
   }
 }
 
