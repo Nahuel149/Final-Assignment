@@ -218,26 +218,17 @@ function CalculatorApp() {
         ? _dispatch(state, { action: ACTIONS.DELETE_LAST_INPUT })
         : input === "="
         ? _dispatch(
-            { ...state, operator: null },
-            {
-              action: ACTIONS.CALCULATE,
-              input: {
-                n1: state.firstOperand,
-                n2: state.secondOperand,
-                operator: state.operator,
-              },
-            },
+            { ...state, isCalcDone: true },
+            { action: ACTIONS.CALCULATE },
           )
         : ["+", "-", "*", "/", "%"].includes(input)
         ? _dispatch(state, { action: ACTIONS.HANDLE_OPERATOR, input })
         : _dispatch(state, { action: ACTIONS.APPEND_NUMBER, input });
 
+    console.log(state);
+
     updateDisplay(
-      state.isError
-        ? state.errMsg
-        : state.isFirstOperand || !+state.secondOperand
-        ? state.firstOperand
-        : state.secondOperand,
+      state.isError ? state.errMsg : state.currentInput || state.firstOperand,
     );
   }
 
@@ -251,53 +242,67 @@ function CalculatorApp() {
 
     switch (action) {
       case ACTIONS.APPEND_NUMBER:
-        return input === "." && hasDot(currentOperand)
+        const updated = `${
+          state.isError || state.currentInput === "0" ? "" : state.currentInput
+        }${input}`;
+
+        return input === "." && hasDot(state.currentInput)
           ? state
           : {
               ...state,
-              [operator ? "secondOperand" : "firstOperand"]: `${
-                state.isError || currentOperand.toString() === "0"
-                  ? ""
-                  : currentOperand
-              }${input}`,
+              [!isFirstOperand ? "secondOperand" : "firstOperand"]: updated,
               isError: false,
+              currentInput: updated,
             };
 
       case ACTIONS.HANDLE_OPERATOR:
         return firstOperand
           ? secondOperand
             ? _dispatch(
-                { ...state, operator: input },
+                { ...state, operator: input, isCalcDone: false },
                 {
                   action: ACTIONS.CALCULATE,
-                  input: { n1: firstOperand, n2: secondOperand, operator },
+                  input: { operator },
                 },
               )
-            : { ...state, operator: input, isFirstOperand: false }
+            : {
+                ...state,
+                operator: input,
+                isFirstOperand: false,
+                currentInput: "",
+              }
           : state; //ignore
 
       case ACTIONS.CALCULATE:
-        const { n1, n2, operater } = input;
-        const { isError, errMsg, ans } = operate(input);
+        const { isError, errMsg, ans } = operate({
+          n1: firstOperand,
+          n2: secondOperand,
+          operator: input?.operator ?? operator,
+        });
 
-        return {
-          ...state,
-          firstOperand: isError ? null : ans.toString(),
-          operator: isError ? null : operator,
-          isFirstOperand: isError,
-          secondOperand: "",
-          errMsg,
-          isError,
-        };
+        return firstOperand && secondOperand
+          ? {
+              ...state,
+              firstOperand: isError ? null : ans.toString(),
+
+              operator: isError ? null : operator,
+
+              isFirstOperand: isError || state.isCalcDone,
+              secondOperand: "",
+              errMsg,
+              isError,
+
+              currentInput: "",
+            }
+          : state;
 
       case ACTIONS.DELETE_LAST_INPUT:
-        console.log(deleteLastInput(input));
+        console.log(deleteLastInput(getCurrentOperand(state)));
+        const afterRemove = compose(deleteLastInput, getCurrentOperand)(state);
         return {
           ...state,
-          [isFirstOperand ? "firstOperand" : "secondOperand"]: compose(
-            deleteLastInput,
-            getCurrentOperand,
-          )(state),
+          [isFirstOperand ? "firstOperand" : "secondOperand"]: afterRemove,
+          currentInput: afterRemove,
         };
     }
   }
@@ -307,11 +312,13 @@ function CalculatorApp() {
   function getInitialState() {
     return {
       operator: null,
-      firstOperand: 0,
-      secondOperand: 0,
+      firstOperand: "",
+      secondOperand: "",
+      currentInput: "0",
       isError: false,
       errMsg: "",
       isFirstOperand: true,
+      isCalcDone: false,
     };
   }
   function deleteLastInput(v) {
@@ -341,7 +348,7 @@ function Utils() {
   }
 
   function trim(str) {
-    return str.trim();
+    return str?.trim();
   }
   function numberify(v) {
     return Number(v);
