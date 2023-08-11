@@ -47,6 +47,7 @@ body {
 }
 
 .operators>.button {
+  color: white;
   background-color: #ff9e30;
   border: none;
   border-bottom: .25px solid black;
@@ -54,4 +55,8 @@ body {
 
 .operators>.button:last-child {
   border-bottom-color: transparent;
+}
+
+.delete {
+  width: 35px;
 }

@@ -35,9 +35,9 @@ function Calculator() {
 
   const OPERATIONS = {
     "+": (n1) => (n2) => n1 + n2,
-    "-": (n1) => (n2) => n1 - n2,
-    "*": (n1) => (n2) => n1 * n2,
-    "/": (n1) => (n2) => n1 / n2,
+    "−": (n1) => (n2) => n1 - n2,
+    x: (n1) => (n2) => n1 * n2,
+    "÷": (n1) => (n2) => n1 / n2,
     "%": (n1) => (n2) => n1 % n2,
   };
   const ERRORS = {
@@ -141,7 +141,7 @@ function CalculatorApp() {
             { ...state, isCalcDone: true },
             { action: ACTIONS.CALCULATE },
           )
-        : ["+", "-", "x", "/", "%"].includes(input)
+        : ["+", "−", "x", "÷", "%"].includes(input)
         ? _dispatch(state, { action: ACTIONS.HANDLE_OPERATOR, input })
         : _dispatch(state, { action: ACTIONS.APPEND_NUMBER, input });
 
