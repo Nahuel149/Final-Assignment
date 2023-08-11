@@ -1,97 +1,16 @@
-const app = CalculatorApp();
 const { compose, unless, tap, numberify, trim } = Utils();
-
-const display = document.getElementById("display");
-
-let currentInput = "";
-let currentOperator = "";
-let firstNumber = null;
-
-function updateDisplay() {
-  display.textContent = currentInput;
-}
-
-function appendNumber(number) {
-  if (currentInput === "0" || currentInput === "Error") {
-    currentInput = number;
-  } else {
-    currentInput += number;
-  }
-  updateDisplay();
-}
-
-function handleOperator(operator) {
-  if (firstNumber === null) {
-    firstNumber = parseFloat(currentInput);
-    currentInput = "";
-    currentOperator = operator;
-  }
-}
-
-function operate() {
-  const secondNumber = parseFloat(currentInput);
-  if (isNaN(secondNumber)) {
-    currentInput = "Error";
-  } else {
-    switch (currentOperator) {
-      case "+":
-        currentInput = (firstNumber + secondNumber).toString();
-        break;
-      case "-":
-        currentInput = (firstNumber - secondNumber).toString();
-        break;
-      case "*":
-        currentInput = (firstNumber * secondNumber).toString();
-        break;
-      case "/":
-        if (secondNumber === 0) {
-          currentInput = "Error: Division by zero";
-        } else {
-          currentInput = (firstNumber / secondNumber).toString();
-        }
-        break;
-    }
-  }
-  firstNumber = null;
-  currentOperator = "";
-  updateDisplay();
-}
-
-function clear() {
-  currentInput = "";
-  firstNumber = null;
-  currentOperator = "";
-  updateDisplay();
-}
+const app = CalculatorApp();
 
 // Event Listeners
-document.querySelectorAll(".number").forEach((button) => {
-  button.addEventListener("click", () => {
-    appendNumber(button.textContent);
-  });
-});
-
-document.querySelectorAll(".operator").forEach((button) => {
-  button.addEventListener("click", () => {
-    handleOperator(button.textContent);
-  });
-});
-
-document.getElementById("equals").addEventListener("click", operate);
-
-document.getElementById("clear").addEventListener("click", clear);
-
-document.getElementById("decimal").addEventListener("click", () => {
-  if (!currentInput.includes(".")) {
-    currentInput += ".";
-    updateDisplay();
-  }
-});
-
-document.getElementById("backspace").addEventListener("click", () => {
-  currentInput = currentInput.slice(0, -1);
-  updateDisplay();
-});
+const listener = (e) => app.dispatch(e.target.textContent);
+[
+  ...document.querySelectorAll(".number"),
+  ...document.querySelectorAll(".operator"),
+  document.getElementById("equals"),
+  document.getElementById("clear"),
+  document.getElementById("decimal"),
+  document.getElementById("backspace"),
+].reduce((acc, element) => element.addEventListener("click", listener));
 
 // Keyboard support
 
