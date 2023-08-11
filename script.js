@@ -3,6 +3,7 @@ const app = CalculatorApp();
 
 // Event Listeners
 const listener = (e) => app.dispatch(e.target.textContent);
+
 [
   ...document.querySelectorAll(".number"),
   ...document.querySelectorAll(".operator"),
@@ -10,7 +11,7 @@ const listener = (e) => app.dispatch(e.target.textContent);
   document.getElementById("clear"),
   document.getElementById("decimal"),
   document.getElementById("backspace"),
-].reduce((acc, element) => element.addEventListener("click", listener));
+].forEach((element) => element.addEventListener("click", listener));
 
 // Keyboard support
 
@@ -193,27 +194,27 @@ function CalculatorApp() {
           : state; //ignore
 
       case ACTIONS.CALCULATE:
+        if (!firstOperand || !secondOperand) return state;
+
         const { isError, errMsg, ans } = operate({
           n1: firstOperand,
           n2: secondOperand,
           operator: input?.operator ?? operator,
         });
 
-        return firstOperand && secondOperand
-          ? {
-              ...state,
-              firstOperand: isError ? null : ans.toString(),
+        return {
+          ...state,
+          firstOperand: isError ? null : ans.toString(),
 
-              operator: isError ? null : operator,
+          operator: isError ? null : operator,
 
-              isFirstOperand: isError || state.isCalcDone,
-              secondOperand: "",
-              errMsg,
-              isError,
+          isFirstOperand: isError || state.isCalcDone,
+          secondOperand: "",
+          errMsg,
+          isError,
 
-              currentInput: "",
-            }
-          : state;
+          currentInput: "",
+        };
 
       case ACTIONS.DELETE_LAST_INPUT:
         console.log(deleteLastInput(getCurrentOperand(state)));
