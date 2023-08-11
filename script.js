@@ -141,7 +141,7 @@ function CalculatorApp() {
             { ...state, isCalcDone: true },
             { action: ACTIONS.CALCULATE },
           )
-        : ["+", "-", "*", "/", "%"].includes(input)
+        : ["+", "-", "x", "/", "%"].includes(input)
         ? _dispatch(state, { action: ACTIONS.HANDLE_OPERATOR, input })
         : _dispatch(state, { action: ACTIONS.APPEND_NUMBER, input });
 
@@ -217,7 +217,6 @@ function CalculatorApp() {
         };
 
       case ACTIONS.DELETE_LAST_INPUT:
-        console.log(deleteLastInput(getCurrentOperand(state)));
         const afterRemove = compose(deleteLastInput, getCurrentOperand)(state);
         return {
           ...state,
