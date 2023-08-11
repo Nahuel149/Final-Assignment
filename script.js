@@ -132,7 +132,7 @@ function CalculatorApp() {
   function dispatch(v) {
     const input = v.trim();
     state =
-      input === "C"
+      input === "AC"
         ? getInitialState()
         : input === "←"
         ? _dispatch(state, { action: ACTIONS.DELETE_LAST_INPUT })
