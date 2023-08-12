@@ -1,69 +1,69 @@
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f5f5f5;
-    margin: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-  }
-  
-  .display {
-    font-size: 2rem;
-    text-align: right;
-    padding: 1.5rem 1.5rem 0.25rem 0; 
-    color: white;
-    background-color: rgba(74, 74, 74, 1);
-    border-radius: 20px 20px 0 0;
-    white-space: nowrap; 
-    overflow: hidden;
-    text-overflow: ellipsis;
-    height: 4rem; 
-    max-width: 100%; 
-    display: flex;
-    justify-content: flex-end;
-  }
-  
-  .btns {
-    display: flex;
-    border: 1px solid black;
-  }
-  
-  .operators {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    border-left: 1px solid black;
-  }
-  
-  .row {
-    display: flex;
-  }
-  
-  .button {
-  
-    padding: 1rem;
-  
-    background-color: white;
-  
-    transition: background-color 0.3s, color 0.3s;
-    width: 6rem;
-    height: 5rem;
-    border: 0.25px solid #c1c5be8a;
-    font-size: 1.75rem;
-  }
-  
-  .operators>.button {
-    color: white;
-    background-color: #ff9e30;
-    border: none;
-    border-bottom: .25px solid black;
-  }
-  
-  .operators>.button:last-child {
-    border-bottom-color: transparent;
-  }
-  
-  .delete {
-    width: 35px;
-  }
+  font-family: Arial, sans-serif;
+  background-color: #f5f5f5;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.display {
+  font-size: 2rem;
+  text-align: right;
+  padding: 1.5rem 1.5rem 0.25rem 0;
+  color: white;
+  background-color: rgba(74, 74, 74, 1);
+  border-radius: 20px 20px 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  height: 4rem;
+  max-width: 100%;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btns {
+  display: flex;
+  border: 1px solid black;
+}
+
+.operators {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-left: 1px solid black;
+}
+
+.row {
+  display: flex;
+}
+
+.button {
+
+  padding: 1rem;
+
+  background-color: white;
+
+  transition: background-color 0.3s, color 0.3s;
+  width: 6rem;
+  height: 5rem;
+  border: 0.25px solid #c1c5be8a;
+  font-size: 1.75rem;
+}
+
+.operators>.button {
+  color: white;
+  background-color: #ff9e30;
+  border: none;
+  border-bottom: .25px solid black;
+}
+
+.operators>.button:last-child {
+  border-bottom-color: transparent;
+}
+
+.delete {
+  width: 35px;
+}
