@@ -16,7 +16,7 @@ const listener = (e) => app.dispatch(e.target.textContent);
 // Keyboard support
 
 document.addEventListener("keydown", (event) => {
-  event.preventDefault(); 
+  event.preventDefault();
 
   const supportedKeys = [
     ".", "=", "+", "-", "*", "/", "Escape", "Backspace", "Enter",
@@ -67,11 +67,11 @@ function Calculator() {
   const calc = ({ n1, n2, operator }) => OPERATIONS[operator](n1)(n2);
 
   const operate = compose(
-      handleOutput,
-      unless(isError)(calc),
-      tap(validateInput),
-      formatInputs,
-      tap(reset),
+    handleOutput,
+    unless(isError)(calc),
+    tap(validateInput),
+    formatInputs,
+    tap(reset),
   );
 
   return { operate };
@@ -108,22 +108,22 @@ function Calculator() {
 
   function validateInput({ n1, n2, ...rest } = {}) {
     return [n1, n2].some(isNaN)
-        ? setResult({ ...result, isError: true, errMsg: ERRORS["WRONG_INPUT"] })
-        : { n1, n2, ...rest };
+      ? setResult({ ...result, isError: true, errMsg: ERRORS["WRONG_INPUT"] })
+      : { n1, n2, ...rest };
   }
 
   function handleOutput(ans) {
     return setResult(
-        isDivisionByZero(ans)
-            ? {
-              isError: true,
-              errMsg: ERRORS["DIVISION_BY_ZERO"],
-              ans: null,
-            }
-            : {
-              ...reset(),
-              ans,
-            },
+      isDivisionByZero(ans)
+        ? {
+          isError: true,
+          errMsg: ERRORS["DIVISION_BY_ZERO"],
+          ans: null,
+        }
+        : {
+          ...reset(),
+          ans,
+        },
     );
   }
 }
@@ -149,21 +149,21 @@ function CalculatorApp() {
   function dispatch(v) {
     const input = v.trim();
     state = ["AC", "Escape"].includes(input)
-        ? getInitialState()
-        : ["Backspace", "←"].includes(input)
-            ? _dispatch(state, { action: ACTIONS.DELETE_LAST_INPUT })
-            : ["=", "Enter"].includes(input)
-                ? _dispatch({ ...state, isCalcDone: true }, { action: ACTIONS.CALCULATE })
-                : ["+", "−", "x", "÷", "%", "*", "/", "-", "+"].includes(input)
-                    ? _dispatch(state, { action: ACTIONS.HANDLE_OPERATOR, input })
-                    : ["+/-"].includes(input)
-                        ? _dispatch(state, { action: ACTIONS.HANDLE_NEGATIVE })
-                        : _dispatch(state, { action: ACTIONS.APPEND_NUMBER, input });
+      ? getInitialState()
+      : ["Backspace", "←"].includes(input)
+        ? _dispatch(state, { action: ACTIONS.DELETE_LAST_INPUT })
+        : ["=", "Enter"].includes(input)
+          ? _dispatch({ ...state, isCalcDone: true }, { action: ACTIONS.CALCULATE })
+          : ["+", "−", "x", "÷", "%", "*", "/", "-", "+"].includes(input)
+            ? _dispatch(state, { action: ACTIONS.HANDLE_OPERATOR, input })
+            : ["+/-"].includes(input)
+              ? _dispatch(state, { action: ACTIONS.HANDLE_NEGATIVE })
+              : _dispatch(state, { action: ACTIONS.APPEND_NUMBER, input });
 
     console.log(state);
 
     updateDisplay(
-        state.isError ? state.errMsg : state.currentInput || state.firstOperand,
+      state.isError ? state.errMsg : state.currentInput || state.firstOperand,
     );
   }
 
@@ -178,59 +178,73 @@ function CalculatorApp() {
     switch (action) {
       case ACTIONS.APPEND_NUMBER:
         const inputWithoutCommas = state.currentInput.replace(/,/g, "");
-        const updated = `${
-            state.isError || inputWithoutCommas === "0" ? "" : inputWithoutCommas
-        }${input}`.slice(0, 13);
+        const updated = `${state.isError || inputWithoutCommas === "0" ? "" : inputWithoutCommas
+          }${input}`.slice(0, 13);
 
         return input === "." && hasDot(state.currentInput)
-            ? state
-            : {
-              ...state,
-              [!isFirstOperand ? "secondOperand" : "firstOperand"]: updated,
-              isError: false,
-              currentInput: updated,
-            };
+          ? state
+          : {
+            ...state,
+            [!isFirstOperand ? "secondOperand" : "firstOperand"]: updated,
+            isError: false,
+            currentInput: updated,
+          };
 
       case ACTIONS.HANDLE_OPERATOR:
         return firstOperand
-            ? secondOperand
-                ? _dispatch(
-                    { ...state, operator: input, isCalcDone: false },
-                    {
-                      action: ACTIONS.CALCULATE,
-                      input: { operator },
-                    },
-                )
-                : {
-                  ...state,
-                  operator: input,
-                  isFirstOperand: false,
-                  currentInput: "",
-                }
-            : state; //ignore
+          ? secondOperand
+            ? _dispatch(
+              { ...state, operator: input, isCalcDone: false },
+              {
+                action: ACTIONS.CALCULATE,
+                input: { operator },
+              },
+            )
+            : {
+              ...state,
+              operator: input,
+              isFirstOperand: false,
+              currentInput: "",
+            }
+          : state; //ignore
 
       case ACTIONS.CALCULATE:
-        if (!firstOperand || !secondOperand) return state;
+        if (!firstOperand || !secondOperand || !operator) return state; // Return if there's no operator or operands
+
+        const normalizedOperator = normalizeOperator(operator); // Convert the operator to a consistent format
 
         const { isError, errMsg, ans } = operate({
           n1: firstOperand,
           n2: secondOperand,
-          operator: input?.operator ?? operator,
+          operator: normalizedOperator, // Use the normalized operator
         });
 
         return {
           ...state,
           firstOperand: isError ? null : ans.toString(),
-
-          operator: isError ? null : operator,
-
-          isFirstOperand: isError || state.isCalcDone,
+          operator: null, // Clear the operator after calculation
+          isFirstOperand: true, // Reset for the next input
           secondOperand: "",
-          errMsg,
-          isError,
-
-          currentInput: "",
+          currentInput: isError ? errMsg : ans.toString(),
+          isError: isError,
+          errMsg: errMsg,
         };
+
+        // Add a function to normalize operator symbols
+        function normalizeOperator(operator) {
+          switch (operator) {
+            case "+":
+              return "+";
+            case "-":
+              return "−";
+            case "*":
+              return "x";
+            case "/":
+              return "÷";
+            default:
+              return operator;
+          }
+        }
 
       case ACTIONS.DELETE_LAST_INPUT:
         const afterRemove = compose(deleteLastInput, getCurrentOperand)(state);
