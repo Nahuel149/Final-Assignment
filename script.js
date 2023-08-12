@@ -16,19 +16,14 @@ const listener = (e) => app.dispatch(e.target.textContent);
 // Keyboard support
 
 document.addEventListener("keydown", (event) => {
+  const supportedNums = Array.from(Array(10).keys());
   const key = event.key;
-  if (!isNaN(key) || key === ".") {
-    appendNumber(key);
-  } else if (key === "+" || key === "-" || key === "*" || key === "/") {
-    handleOperator(key);
-  } else if (key === "=" || key === "Enter") {
-    operate();
-  } else if (key === "Backspace") {
-    currentInput = currentInput.slice(0, -1);
-    updateDisplay();
-  } else if (key === "Escape") {
-    clear();
-  }
+  console.log(key, !supportedNums.includes(key), supportedNums);
+  if (
+      [".", "=", "+", "-", "*", "/", "Escape", "Backspace", "Enter"] ||
+      supportedNums.includes(Number(key))
+  )
+    app.dispatch(key);
 });
 
 function addCommas(numberString) {
@@ -59,11 +54,11 @@ function Calculator() {
   const calc = ({ n1, n2, operator }) => OPERATIONS[operator](n1)(n2);
 
   const operate = compose(
-    handleOutput,
-    unless(isError)(calc),
-    tap(validateInput),
-    formatInputs,
-    tap(reset),
+      handleOutput,
+      unless(isError)(calc),
+      tap(validateInput),
+      formatInputs,
+      tap(reset),
   );
 
   return { operate };
@@ -100,22 +95,22 @@ function Calculator() {
 
   function validateInput({ n1, n2, ...rest } = {}) {
     return [n1, n2].some(isNaN)
-      ? setResult({ ...result, isError: true, errMsg: ERRORS["WRONG_INPUT"] })
-      : { n1, n2, ...rest };
+        ? setResult({ ...result, isError: true, errMsg: ERRORS["WRONG_INPUT"] })
+        : { n1, n2, ...rest };
   }
 
   function handleOutput(ans) {
     return setResult(
-      isDivisionByZero(ans)
-        ? {
-            isError: true,
-            errMsg: ERRORS["DIVISION_BY_ZERO"],
-            ans: null,
-          }
-        : {
-            ...reset(),
-            ans,
-          },
+        isDivisionByZero(ans)
+            ? {
+              isError: true,
+              errMsg: ERRORS["DIVISION_BY_ZERO"],
+              ans: null,
+            }
+            : {
+              ...reset(),
+              ans,
+            },
     );
   }
 }
@@ -140,26 +135,22 @@ function CalculatorApp() {
 
   function dispatch(v) {
     const input = v.trim();
-    state =
-      input === "AC"
+    state = ["AC", "Escape"].includes(input)
         ? getInitialState()
-        : input === "←"
-        ? _dispatch(state, { action: ACTIONS.DELETE_LAST_INPUT })
-        : input === "="
-        ? _dispatch(
-            { ...state, isCalcDone: true },
-            { action: ACTIONS.CALCULATE },
-          )
-        : ["+", "−", "x", "÷", "%"].includes(input)
-        ? _dispatch(state, { action: ACTIONS.HANDLE_OPERATOR, input })
-        : ["+/-"].includes(input)
-        ? _dispatch(state, { action: ACTIONS.HANDLE_NEGATIVE })
-        : _dispatch(state, { action: ACTIONS.APPEND_NUMBER, input });
+        : ["Backspace", "←"].includes(input)
+            ? _dispatch(state, { action: ACTIONS.DELETE_LAST_INPUT })
+            : ["=", "Enter"].includes(input)
+                ? _dispatch({ ...state, isCalcDone: true }, { action: ACTIONS.CALCULATE })
+                : ["+", "−", "x", "÷", "%", "*", "/", "-", "+"].includes(input)
+                    ? _dispatch(state, { action: ACTIONS.HANDLE_OPERATOR, input })
+                    : ["+/-"].includes(input)
+                        ? _dispatch(state, { action: ACTIONS.HANDLE_NEGATIVE })
+                        : _dispatch(state, { action: ACTIONS.APPEND_NUMBER, input });
 
     console.log(state);
 
     updateDisplay(
-      state.isError ? state.errMsg : state.currentInput || state.firstOperand,
+        state.isError ? state.errMsg : state.currentInput || state.firstOperand,
     );
   }
 
@@ -175,12 +166,12 @@ function CalculatorApp() {
       case ACTIONS.APPEND_NUMBER:
         const inputWithoutCommas = state.currentInput.replace(/,/g, "");
         const updated = `${
-          state.isError || inputWithoutCommas === "0" ? "" : inputWithoutCommas
+            state.isError || inputWithoutCommas === "0" ? "" : inputWithoutCommas
         }${input}`.slice(0, 13);
 
         return input === "." && hasDot(state.currentInput)
-          ? state
-          : {
+            ? state
+            : {
               ...state,
               [!isFirstOperand ? "secondOperand" : "firstOperand"]: updated,
               isError: false,
@@ -189,21 +180,21 @@ function CalculatorApp() {
 
       case ACTIONS.HANDLE_OPERATOR:
         return firstOperand
-          ? secondOperand
-            ? _dispatch(
-                { ...state, operator: input, isCalcDone: false },
-                {
-                  action: ACTIONS.CALCULATE,
-                  input: { operator },
-                },
-              )
-            : {
-                ...state,
-                operator: input,
-                isFirstOperand: false,
-                currentInput: "",
-              }
-          : state; //ignore
+            ? secondOperand
+                ? _dispatch(
+                    { ...state, operator: input, isCalcDone: false },
+                    {
+                      action: ACTIONS.CALCULATE,
+                      input: { operator },
+                    },
+                )
+                : {
+                  ...state,
+                  operator: input,
+                  isFirstOperand: false,
+                  currentInput: "",
+                }
+            : state; //ignore
 
       case ACTIONS.CALCULATE:
         if (!firstOperand || !secondOperand) return state;
