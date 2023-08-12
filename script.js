@@ -31,12 +31,11 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
-
 function addCommas(numberString) {
-    const parts = numberString.split('.');
-    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    return parts.join('.');
-  }
+  const parts = numberString.split(".");
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return parts.join(".");
+}
 
 function Calculator() {
   let result;
@@ -171,10 +170,10 @@ function CalculatorApp() {
 
     switch (action) {
       case ACTIONS.APPEND_NUMBER:
-        const inputWithoutCommas = state.currentInput.replace(/,/g, '');
+        const inputWithoutCommas = state.currentInput.replace(/,/g, "");
         const updated = `${
-            state.isError || inputWithoutCommas === "0" ? "" : inputWithoutCommas
-            }${input}`.slice(0, 13);         
+          state.isError || inputWithoutCommas === "0" ? "" : inputWithoutCommas
+        }${input}`.slice(0, 13);
 
         return input === "." && hasDot(state.currentInput)
           ? state
