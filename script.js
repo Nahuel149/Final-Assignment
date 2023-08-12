@@ -18,10 +18,10 @@ const listener = (e) => app.dispatch(e.target.textContent);
 document.addEventListener("keydown", (event) => {
   const supportedNums = Array.from(Array(10).keys());
   const key = event.key;
-  console.log(key, !supportedNums.includes(key), supportedNums);
+  console.log(key, !isNaN(key), supportedNums);
   if (
-      [".", "=", "+", "-", "*", "/", "Escape", "Backspace", "Enter"] ||
-      supportedNums.includes(Number(key))
+    [".", "=", "+", "-", "*", "/", "Escape", "Backspace", "Enter"].includes(key) ||
+    (!isNaN(key) || ['Delete', 'Enter'].includes(key))
   )
     app.dispatch(key);
 });
