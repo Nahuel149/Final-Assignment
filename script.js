@@ -16,6 +16,8 @@ const listener = (e) => app.dispatch(e.target.textContent);
 // Keyboard support
 
 document.addEventListener("keydown", (event) => {
+  event.preventDefault(); 
+
   const supportedKeys = [
     ".", "=", "+", "-", "*", "/", "Escape", "Backspace", "Enter",
     "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
@@ -27,8 +29,10 @@ document.addEventListener("keydown", (event) => {
   if (supportedKeys.includes(key)) {
     if (key === "Delete") {
       app.dispatch("AC");
-    } else if (!isNaN(key)) {
+    } else if (!isNaN(key) || key === ".") {
       app.dispatch(key);
+    } else if (key === "=" || key === "Enter") {
+      app.dispatch("=");
     } else {
       app.dispatch(key);
     }
