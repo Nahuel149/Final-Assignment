@@ -16,14 +16,23 @@ const listener = (e) => app.dispatch(e.target.textContent);
 // Keyboard support
 
 document.addEventListener("keydown", (event) => {
-  const supportedNums = Array.from(Array(10).keys());
+  const supportedKeys = [
+    ".", "=", "+", "-", "*", "/", "Escape", "Backspace", "Enter",
+    "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+    "Delete"
+  ];
+
   const key = event.key;
-  console.log(key, !isNaN(key), supportedNums);
-  if (
-    [".", "=", "+", "-", "*", "/", "Escape", "Backspace", "Enter"].includes(key) ||
-    (!isNaN(key) || ['Delete', 'Enter'].includes(key))
-  )
-    app.dispatch(key);
+
+  if (supportedKeys.includes(key)) {
+    if (key === "Delete") {
+      app.dispatch("AC");
+    } else if (!isNaN(key)) {
+      app.dispatch(key);
+    } else {
+      app.dispatch(key);
+    }
+  }
 });
 
 function addCommas(numberString) {
