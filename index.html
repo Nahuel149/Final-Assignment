@@ -8,7 +8,12 @@
   </head>
   <body>
     <main id="calculator">
-      <div id="display"></div>
+      <section class="mother">
+        <picture>
+          <img src="./images/k-logo.jpg" class="logo" alt="logo" />
+        </picture>
+      </section>
+      <section id="display"></section>
       <button class="button number" aria-label="Number 1">1</button>
       <button class="button number" aria-label="Number 2">2</button>
       <button class="button number" aria-label="Number 3">3</button>
@@ -21,12 +26,17 @@
       <button class="button number" aria-label="Number 0">0</button>
       <button id="decimal" class="button" aria-label="Decimal Point">.</button>
       <button id="backspace" class="button" aria-label="Backspace">←</button>
-      <button class="button operator" aria-label="Add">+</button>
-      <button class="button operator" aria-label="Multiply">*</button>
-      <button class="button operator" aria-label="Divide">/</button>
-      <button class="button operator" aria-label="Subtract">-</button>
-      <button id="equals" class="button equals" aria-label="Equals">=</button>
-      <button id="clear" class="button clear" aria-label="Clear">C</button>
+      <button class="button operator green" aria-label="Add">+</button>
+      <button class="button operator green" aria-label="Multiply">*</button>
+      <button class="button operator green" aria-label="Divide">/</button>
+      <button class="button operator green" aria-label="Subtract">-</button>
+      <button class="button operator green" aria-label="Modulo">%</button>
+      <button id="equals" class="button equals green" aria-label="Equals">
+        =
+      </button>
+      <button id="clear" class="button clear green" aria-label="Clear">
+        C
+      </button>
     </main>
     <script src="script.js"></script>
   </body>
