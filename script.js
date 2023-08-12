@@ -18,9 +18,9 @@ const listener = (e) => app.dispatch(e.target.textContent);
 document.addEventListener("keydown", (event) => {
   const supportedNums = Array.from(Array(10).keys());
   const key = event.key;
-  console.log(key, !supportedNums.includes(key), supportedNums);
+
   if (
-      [".", "=", "+", "-", "*", "/", "Escape", "Backspace", "Enter"] ||
+      [".", "=", "+", "-", "*", "/", "Escape", "Backspace", "Enter"].includes(key) ||
       supportedNums.includes(Number(key))
   )
     app.dispatch(key);
@@ -34,12 +34,16 @@ function addCommas(numberString) {
 
 function Calculator() {
   let result;
+  const multiply = (n1) => (n2) => n1 * n2;
+  const divide = (n1) => (n2) => n1 / n2
 
   const OPERATIONS = {
     "+": (n1) => (n2) => n1 + n2,
-    "−": (n1) => (n2) => n1 - n2,
-    x: (n1) => (n2) => n1 * n2,
-    "÷": (n1) => (n2) => n1 / n2,
+    "-": (n1) => (n2) => n1 - n2,
+    x: multiply,
+    "*": multiply,
+    "÷": divide,
+    "/": divide,
     "%": (n1) => (n2) => n1 % n2,
   };
   const ERRORS = {
@@ -194,7 +198,9 @@ function CalculatorApp() {
                   isFirstOperand: false,
                   currentInput: "",
                 }
-            : state; //ignore
+            : input == "-"
+                ? _dispatch(state, { action: ACTIONS.HANDLE_NEGATIVE })
+                : state; //ignore
 
       case ACTIONS.CALCULATE:
         if (!firstOperand || !secondOperand) return state;
@@ -255,7 +261,10 @@ function CalculatorApp() {
     return v?.toString().slice(0, -1);
   }
   function toggleNegative(v) {
-    if (v === "0" || !v) return "0";
+    console.log(v);
+    // if (v === "0" || !v) return "0";
+    if (v === "0") return "0";
+
     v = v?.toString();
     return v.includes("-") ? v.slice(1) : `-${v}`;
   }
