@@ -135,6 +135,7 @@ function CalculatorApp() {
     HANDLE_OPERATOR: "handle-operator",
     CALCULATE: "calculate",
     DELETE_LAST_INPUT: "delete-last-input",
+    HANDLE_NEGATIVE: "handle-negative",
   };
 
   function dispatch(v) {
@@ -151,6 +152,8 @@ function CalculatorApp() {
           )
         : ["+", "−", "x", "÷", "%"].includes(input)
         ? _dispatch(state, { action: ACTIONS.HANDLE_OPERATOR, input })
+        : ["+/-"].includes(input)
+        ? _dispatch(state, { action: ACTIONS.HANDLE_NEGATIVE })
         : _dispatch(state, { action: ACTIONS.APPEND_NUMBER, input });
 
     console.log(state);
@@ -232,6 +235,14 @@ function CalculatorApp() {
           [isFirstOperand ? "firstOperand" : "secondOperand"]: afterRemove,
           currentInput: afterRemove,
         };
+
+      case ACTIONS.HANDLE_NEGATIVE:
+        const toggeled = compose(toggleNegative, getCurrentOperand)(state);
+        return {
+          ...state,
+          [isFirstOperand ? "firstOperand" : "secondOperand"]: toggeled,
+          currentInput: toggeled,
+        };
     }
   }
   function hasDot(v) {
@@ -251,6 +262,11 @@ function CalculatorApp() {
   }
   function deleteLastInput(v) {
     return v?.toString().slice(0, -1);
+  }
+  function toggleNegative(v) {
+    if (v === "0" || !v) return "0";
+    v = v?.toString();
+    return v.includes("-") ? v.slice(1) : `-${v}`;
   }
   function getCurrentOperand(state) {
     const { isFirstOperand, firstOperand, secondOperand } = state;
