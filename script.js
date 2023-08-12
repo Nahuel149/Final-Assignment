@@ -1,97 +1,17 @@
-const app = CalculatorApp();
 const { compose, unless, tap, numberify, trim } = Utils();
-
-const display = document.getElementById("display");
-
-let currentInput = "";
-let currentOperator = "";
-let firstNumber = null;
-
-function updateDisplay() {
-  display.textContent = currentInput;
-}
-
-function appendNumber(number) {
-  if (currentInput === "0" || currentInput === "Error") {
-    currentInput = number;
-  } else {
-    currentInput += number;
-  }
-  updateDisplay();
-}
-
-function handleOperator(operator) {
-  if (firstNumber === null) {
-    firstNumber = parseFloat(currentInput);
-    currentInput = "";
-    currentOperator = operator;
-  }
-}
-
-function operate() {
-  const secondNumber = parseFloat(currentInput);
-  if (isNaN(secondNumber)) {
-    currentInput = "Error";
-  } else {
-    switch (currentOperator) {
-      case "+":
-        currentInput = (firstNumber + secondNumber).toString();
-        break;
-      case "-":
-        currentInput = (firstNumber - secondNumber).toString();
-        break;
-      case "*":
-        currentInput = (firstNumber * secondNumber).toString();
-        break;
-      case "/":
-        if (secondNumber === 0) {
-          currentInput = "Error: Division by zero";
-        } else {
-          currentInput = (firstNumber / secondNumber).toString();
-        }
-        break;
-    }
-  }
-  firstNumber = null;
-  currentOperator = "";
-  updateDisplay();
-}
-
-function clear() {
-  currentInput = "";
-  firstNumber = null;
-  currentOperator = "";
-  updateDisplay();
-}
+const app = CalculatorApp();
 
 // Event Listeners
-document.querySelectorAll(".number").forEach((button) => {
-  button.addEventListener("click", () => {
-    appendNumber(button.textContent);
-  });
-});
+const listener = (e) => app.dispatch(e.target.textContent);
 
-document.querySelectorAll(".operator").forEach((button) => {
-  button.addEventListener("click", () => {
-    handleOperator(button.textContent);
-  });
-});
-
-document.getElementById("equals").addEventListener("click", operate);
-
-document.getElementById("clear").addEventListener("click", clear);
-
-document.getElementById("decimal").addEventListener("click", () => {
-  if (!currentInput.includes(".")) {
-    currentInput += ".";
-    updateDisplay();
-  }
-});
-
-document.getElementById("backspace").addEventListener("click", () => {
-  currentInput = currentInput.slice(0, -1);
-  updateDisplay();
-});
+[
+  ...document.querySelectorAll(".number"),
+  ...document.querySelectorAll(".operator"),
+  document.getElementById("equals"),
+  document.getElementById("clear"),
+  document.getElementById("decimal"),
+  document.getElementById("backspace"),
+].forEach((element) => element.addEventListener("click", listener));
 
 // Keyboard support
 
@@ -115,9 +35,9 @@ function Calculator() {
 
   const OPERATIONS = {
     "+": (n1) => (n2) => n1 + n2,
-    "-": (n1) => (n2) => n1 - n2,
-    "*": (n1) => (n2) => n1 * n2,
-    "/": (n1) => (n2) => n1 / n2,
+    "−": (n1) => (n2) => n1 - n2,
+    x: (n1) => (n2) => n1 * n2,
+    "÷": (n1) => (n2) => n1 / n2,
     "%": (n1) => (n2) => n1 % n2,
   };
   const ERRORS = {
@@ -132,7 +52,6 @@ function Calculator() {
   const calc = ({ n1, n2, operator }) => OPERATIONS[operator](n1)(n2);
 
   const operate = compose(
-    //tab((args) => console.log(args)),
     handleOutput,
     unless(isError)(calc),
     tap(validateInput),
@@ -201,42 +120,36 @@ function CalculatorApp() {
     display.textContent = v;
   }
 
-  let state = {
-    currentInput: "",
-    operator: null,
-    firstOperand: "",
-    secondOperand: "",
-    isDot: false,
-    isError: false,
-    errMsg: "",
-  };
+  let state = getInitialState();
+
   const ACTIONS = {
     APPEND_NUMBER: "append-number",
     HANDLE_OPERATOR: "handle-operator",
     CALCULATE: "calculate",
+    DELETE_LAST_INPUT: "delete-last-input",
   };
 
   function dispatch(v) {
     const input = v.trim();
     state =
-      v === "="
-        ? _dispatch(state, {
-            action: ACTIONS.CALCULATE,
-            input: {
-              n1: state.firstOperand,
-              n2: state.secondOperand,
-              operator: state.operator,
-            },
-          })
-        : ["+", "-", "*", "/", "%"].includes(input)
+      input === "AC"
+        ? getInitialState()
+        : input === "←"
+        ? _dispatch(state, { action: ACTIONS.DELETE_LAST_INPUT })
+        : input === "="
+        ? _dispatch(
+            { ...state, isCalcDone: true },
+            { action: ACTIONS.CALCULATE },
+          )
+        : ["+", "−", "x", "÷", "%"].includes(input)
         ? _dispatch(state, { action: ACTIONS.HANDLE_OPERATOR, input })
-        : state.isDot
-        ? state
         : _dispatch(state, { action: ACTIONS.APPEND_NUMBER, input });
 
-    // state = _dispatch({ action: ACTIONS.HANDLE_INPUT, data: args });
     console.log(state);
-    updateDisplay(state.isError ? state.errMsg : state.firstOperand);
+
+    updateDisplay(
+      state.isError ? state.errMsg : state.currentInput || state.firstOperand,
+    );
   }
 
   return { dispatch };
@@ -244,41 +157,95 @@ function CalculatorApp() {
   /////***********************************
 
   function _dispatch(state, { action, input }) {
-    const { firstOperand, secondOperand, operator, isDot } = state;
+    const { firstOperand, secondOperand, operator, isFirstOperand } = state;
+    const currentOperand = isFirstOperand ? firstOperand : secondOperand;
+
     switch (action) {
       case ACTIONS.APPEND_NUMBER:
-        const updatedNumber = `${
-          operator ? secondOperand.toString() : firstOperand.toString()
+        const updated = `${
+          state.isError || state.currentInput === "0" ? "" : state.currentInput
         }${input}`;
-        return {
-          ...state,
-          [operator ? "secondOperand" : "firstOperand"]: updatedNumber,
-        };
+
+        return input === "." && hasDot(state.currentInput)
+          ? state
+          : {
+              ...state,
+              [!isFirstOperand ? "secondOperand" : "firstOperand"]: updated,
+              isError: false,
+              currentInput: updated,
+            };
 
       case ACTIONS.HANDLE_OPERATOR:
         return firstOperand
           ? secondOperand
             ? _dispatch(
-                { ...state, operator: input },
+                { ...state, operator: input, isCalcDone: false },
                 {
                   action: ACTIONS.CALCULATE,
-                  input: { n1: firstOperand, n2: secondOperand, operator },
+                  input: { operator },
                 },
               )
-            : { ...state, operator: input }
+            : {
+                ...state,
+                operator: input,
+                isFirstOperand: false,
+                currentInput: "",
+              }
           : state; //ignore
 
       case ACTIONS.CALCULATE:
-        const { n1, n2, operater } = input;
-        const { isError, errMsg, ans } = operate(input);
+        if (!firstOperand || !secondOperand) return state;
+
+        const { isError, errMsg, ans } = operate({
+          n1: firstOperand,
+          n2: secondOperand,
+          operator: input?.operator ?? operator,
+        });
+
         return {
           ...state,
           firstOperand: isError ? null : ans.toString(),
+
+          operator: isError ? null : operator,
+
+          isFirstOperand: isError || state.isCalcDone,
           secondOperand: "",
           errMsg,
           isError,
+
+          currentInput: "",
+        };
+
+      case ACTIONS.DELETE_LAST_INPUT:
+        const afterRemove = compose(deleteLastInput, getCurrentOperand)(state);
+        return {
+          ...state,
+          [isFirstOperand ? "firstOperand" : "secondOperand"]: afterRemove,
+          currentInput: afterRemove,
         };
     }
+  }
+  function hasDot(v) {
+    return v?.toString().includes(".");
+  }
+  function getInitialState() {
+    return {
+      operator: null,
+      firstOperand: "",
+      secondOperand: "",
+      currentInput: "0",
+      isError: false,
+      errMsg: "",
+      isFirstOperand: true,
+      isCalcDone: false,
+    };
+  }
+  function deleteLastInput(v) {
+    return v?.toString().slice(0, -1);
+  }
+  function getCurrentOperand(state) {
+    const { isFirstOperand, firstOperand, secondOperand } = state;
+    return isFirstOperand ? firstOperand : secondOperand;
   }
 }
 
@@ -300,7 +267,7 @@ function Utils() {
   }
 
   function trim(str) {
-    return str.trim();
+    return str?.trim();
   }
   function numberify(v) {
     return Number(v);
